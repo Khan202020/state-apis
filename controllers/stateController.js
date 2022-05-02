@@ -6,49 +6,59 @@ const data = require("../model/states.json");
 // const data = JSON.parse(result);
 
 //Get all states
-const getAllStates = async (req, res) => {
-  try {
-    const response = data;
-    if (!response) return res.status(400).json({ message: "No state found." });
-    let dbData = await State.find({});
-    let finalData = response.map((item) => {
-      let found = dbData.filter(
-        (secondItem) => secondItem.stateCode === item.code
-      );
-      if (found.length === 0) return item;
-      else return { ...item, funfacts: found[0].funfacts };
-    });
-    res.json(finalData);
-  } catch (error) {
-    console.log(error);
-  }
-};
-
-const getContgOrNonContgStates = async (req, res) => {
+const getStates = async (req, res) => {
   try {
     const { contig } = req.query;
-    const response = data;
-    if (response.length === 0)
-      return res.status(400).json({ message: "No state found." });
-    let dbData = await State.find({});
-    let finalData = response.map((item) => {
-      let found = dbData.filter(
-        (secondItem) => secondItem.stateCode === item.code
-      );
-      if (found.length === 0) return item;
-      else return { ...item, funfacts: found[0].funfacts };
-    });
-    if (contig === "true")
-      finalData = finalData.filter((state) => state.admission_number < 48);
-    else finalData = finalData.filter((state) => state.admission_number >= 48);
+    const { state } = req.params;
+    if (contig) {
+      const response = data;
+      if (response.length === 0)
+        return res.status(400).json({ message: "No state found." });
+      let dbData = await State.find({});
+      let finalData = response.map((item) => {
+        let found = dbData.filter(
+          (secondItem) => secondItem.stateCode === item.code
+        );
+        if (found.length === 0) return item;
+        else return { ...item, funfacts: found[0].funfacts };
+      });
+      if (contig === "true")
+        finalData = finalData.filter((state) => state.admission_number < 48);
+      else
+        finalData = finalData.filter((state) => state.admission_number >= 48);
 
-    res.json(finalData);
+      res.json(finalData);
+    } else if (state) {
+      let response = data.filter((item) => item.code === state);
+      if (response.length === 0)
+        return res.status(400).json({ message: "No state found." });
+      let dbData = await State.find({});
+      let finalData = dbData.filter(
+        (secondItem) => secondItem.stateCode === response[0].code
+      );
+      if (finalData.length !== 0)
+        response = [{ ...response[0], funfacts: finalData[0].funfacts }];
+      res.json(response);
+    } else {
+      const response = data;
+      if (!response)
+        return res.status(400).json({ message: "No state found." });
+      let dbData = await State.find({});
+      let finalData = response.map((item) => {
+        let found = dbData.filter(
+          (secondItem) => secondItem.stateCode === item.code
+        );
+        if (found.length === 0) return item;
+        else return { ...item, funfacts: found[0].funfacts };
+      });
+      res.json(finalData);
+    }
   } catch (error) {
     console.log(error);
   }
 };
 
-const getSpecificState = async (req, res) => {
+const getStateFunfacts = async (req, res) => {
   try {
     const { state } = req.params;
     let response = data.filter((item) => item.code === state);
@@ -58,8 +68,8 @@ const getSpecificState = async (req, res) => {
     let finalData = dbData.filter(
       (secondItem) => secondItem.stateCode === response[0].code
     );
-    if (finalData.length !== 0)
-      response = [{ ...response[0], funfacts: finalData[0].funfacts }];
+    if (finalData.length !== 0) response = { data: finalData[0].funfacts };
+    else reposne = null;
     res.json(response);
   } catch (error) {
     console.log(error);
@@ -220,9 +230,8 @@ const deleteFunFact = async (req, res) => {
 };
 
 module.exports = {
-  getAllStates,
-  getContgOrNonContgStates,
-  getSpecificState,
+  getStates,
+
   getStateCapital,
   getStateNickName,
   getStatePopulation,
@@ -230,4 +239,5 @@ module.exports = {
   createFunFact,
   updateFunFact,
   deleteFunFact,
+  getStateFunfacts,
 };
