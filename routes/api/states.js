@@ -13,20 +13,15 @@ const {
 const { requestValidation } = require("../../middleware/validationRequst");
 
 router
+  .get("/", stateController.getStates)
+  .get("/:state", stateController.getStates)
+  .get("/:contig?", stateController.getStates)
   .get(
-    "/:state",
-    getSpecStatePayloadValidation,
+    "/:state/funfact",
+    getStateAttrValidation,
     requestValidation,
-    stateController.getSpecificState
+    stateController.getStateFunfacts
   )
-  // .get(
-  //   "/:contig?",
-  //   getContigStatePayloadValidation,
-  //   requestValidation,
-  //   stateController.getContgOrNonContgStates
-  // )
-  // .get("/", stateController.getAllStates)
-  .get("/:state/funfact", stateController.getAllStates)
   .get(
     "/:state/capital",
     getStateAttrValidation,
